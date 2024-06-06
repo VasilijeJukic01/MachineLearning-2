@@ -5,6 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
 from tensorflow.keras import regularizers
 
+# Data Loader
 data = pd.read_csv('../data/crop.csv')
 print(data.info())
 
@@ -25,6 +26,7 @@ X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
 
+# Layer Creator
 def create_layer(input_size, output_size, activation):
     return {
         'weights':      tf.Variable(tf.random.normal([input_size, output_size], dtype=tf.float64)),
@@ -33,7 +35,7 @@ def create_layer(input_size, output_size, activation):
         'regularizer':  regularizers.l2(0.01)
     }
 
-
+# NN Model
 class NeuralNetwork:
     def __init__(self, input_size, output_size, eta=0.001, epochs=200, batch_size=256):
         self.eta = eta
@@ -71,6 +73,7 @@ class NeuralNetwork:
                     reg_loss = sum([layer['regularizer'](layer['weights']) for layer in self.layers])
                     loss = loss + reg_loss
 
+                # Backwards
                 gradients = tape.gradient(loss, [layer['weights'] for layer in self.layers] + [layer['biases'] for layer in self.layers])
                 self.opt.apply_gradients(zip(gradients, [layer['weights'] for layer in self.layers] + [layer['biases'] for layer in self.layers]))
 
@@ -93,9 +96,11 @@ class NeuralNetwork:
         return predictions, weighted_sum
 
 
+# Train
 nn = NeuralNetwork(X_train.shape[1], num_classes, epochs=1000)
 nn.train(X_train, y_train)
 
+# Evaluate
 pred, _ = nn.evaluate(X_test)
 pred_correct = tf.equal(pred, y_test)
 accuracy = tf.reduce_mean(tf.cast(pred_correct, tf.float32))
